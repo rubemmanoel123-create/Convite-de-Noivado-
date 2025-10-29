@@ -9,9 +9,10 @@
 <body>
 
     <video id="background-video" autoplay loop muted playsinline>
-    <source src="fundo.mp4" type="video/mp4">
-    Seu navegador não suporta vídeos.
-</video>
+        <source src="fundo.webm" type="video/webm">
+        <source src="fundo.mp4" type="video/mp4">
+        Seu navegador não suporta vídeos.
+    </video>
 
 <div class="content-container">
     
@@ -45,6 +46,8 @@
 
             <input type="hidden" name="_captcha" value="false"> 
             <input type="hidden" name="_subject" value="Confirmação Recebida!">
+            
+            <input type="hidden" name="_next" value="https://rubemmanoel123-create.github.io/Convite-de-Noivado-/"> 
         </form>
         
         <p id="message" class="hidden"></p>
@@ -54,5 +57,3 @@
 <script src="script.js"></script>
 </body>
 </html>
-
-
