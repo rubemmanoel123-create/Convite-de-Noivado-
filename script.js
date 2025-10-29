@@ -1,119 +1,71 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Chave para armazenar o status no LocalStorage
-    const SUBMITTED_KEY = 'rsvpSubmitted';
-    
     // Referências aos elementos do DOM
     const video = document.getElementById('background-video');
     const playButtonContainer = document.getElementById('play-button-container');
     const playButton = document.getElementById('play-button');
     const rsvpFormContainer = document.getElementById('rsvp-form-container');
-    const rsvpForm = document.getElementById('rsvp-form');
-    const successContainer = document.getElementById('already-submitted-container');
+    const alreadySubmittedContainer = document.getElementById('already-submitted-container');
 
-    // --- FUNÇÕES DE ESTADO DA PÁGINA ---
+    // --- Lógica de Verificação de Sucesso (APÓS ENVIO) ---
+    const urlParams = new URLSearchParams(window.location.search);
 
-    // Função para exibir a tela de sucesso e ocultar as outras
-    const showSuccessScreen = () => {
-        // Esconde o botão e o formulário
+    if (urlParams.get('success') === 'true') {
+        // Se houver o parâmetro de sucesso na URL, exibe a mensagem de confirmação
         playButtonContainer.classList.add('hidden');
         rsvpFormContainer.classList.add('hidden');
-        
-        // Exibe a tela de sucesso
-        successContainer.classList.remove('hidden');
-        void successContainer.offsetWidth; 
-        successContainer.classList.add('fade-in');
-        
-        // Tenta garantir que o vídeo esteja rodando
-        video.play().catch(e => {
-            console.log("Falha ao tentar iniciar vídeo (Celular): ", e);
-        });
-    };
+        alreadySubmittedContainer.classList.remove('hidden');
 
-    // Função para exibir o botão "CONTINUAR"
-    const showPlayButtonScreen = () => {
-        rsvpFormContainer.classList.add('hidden');
-        successContainer.classList.add('hidden');
+        // Adiciona a classe de fade-in para a mensagem de sucesso
+        void alreadySubmittedContainer.offsetWidth;
+        alreadySubmittedContainer.classList.add('fade-in');
+
+        // Limpa o parâmetro da URL para que a página não fique sempre em estado de sucesso
+        history.replaceState(null, '', window.location.pathname);
         
-        playButtonContainer.classList.remove('hidden');
-        playButtonContainer.classList.add('fade-in'); 
-        
-        // Tenta garantir que o vídeo esteja rodando ao mostrar a tela inicial
-        video.play().catch(e => {
-            console.log("Falha ao tentar iniciar vídeo (Celular): ", e);
-        });
-    };
-    
-    // --- LÓGICA DE INICIALIZAÇÃO (CHECA O LOCALSTORAGE) ---
-    
-    // Verifica o estado no LocalStorage (garante que não preencha duas vezes)
-    if (localStorage.getItem(SUBMITTED_KEY) === 'true') {
-        showSuccessScreen();
-        
-    } else {
-        showPlayButtonScreen(); 
+        // Não executa o resto do script (vídeo/botão inicial)
+        return; 
     }
 
-    // --- EVENT LISTENERS ---
+    // Função para mostrar o botão "Continuar" (COM FADE IN)
+    const showPlayButton = () => {
+        if (playButtonContainer.classList.contains('hidden')) {
+            
+            // 1. Remove 'hidden' para exibir o elemento
+            playButtonContainer.classList.remove('hidden');
+            
+            // 2. Truque para forçar o navegador a renderizar as mudanças de CSS
+            void playButtonContainer.offsetWidth; 
+            
+            // 3. Adiciona 'fade-in' para disparar a transição suave
+            playButtonContainer.classList.add('fade-in');
 
-    // Lógica do Botão "Continuar" (Transição para o Formulário)
+            video.pause(); // Pausa o vídeo
+        }
+    };
+
+    // --- Lógica de Transição do Vídeo ---
+    video.addEventListener('ended', showPlayButton);
+    setTimeout(showPlayButton, 3000); // Fallback de 3 segundos
+
+    // --- Lógica do Botão "Continuar" (COM FADE OUT e FADE IN) ---
     playButton.addEventListener('click', () => {
-        // Fade Out do botão
+        // 1. Inicia o FADE OUT do botão atual
         playButtonContainer.classList.remove('fade-in');
         
-        // Pausa o vídeo enquanto o formulário está na frente
-        video.pause(); 
-        
+        // 2. Após 500ms, esconde o botão e inicia o FADE IN do formulário
         setTimeout(() => {
+            // Esconde o container do botão (DOM)
             playButtonContainer.classList.add('hidden');
+            
+            // Exibe o container do formulário (DOM)
             rsvpFormContainer.classList.remove('hidden');
             
-            // Fade In do Formulário
+            // Truque para forçar o navegador a reconhecer o elemento
             void rsvpFormContainer.offsetWidth; 
+            
+            // 3. Aplica o FADE IN ao formulário
             rsvpFormContainer.classList.add('fade-in');
             
-        }, 500); 
-    });
-
-    // Lógica do Formulário (USANDO FETCH PARA EVITAR REDIRECIONAMENTO E CONTROLAR O ESTADO)
-    rsvpForm.addEventListener('submit', (e) => {
-        e.preventDefault(); // Impede o envio padrão (para usar o Fetch)
-        
-        const submitButton = rsvpForm.querySelector('button[type="submit"]');
-        submitButton.disabled = true;
-        submitButton.textContent = 'Enviando...';
-        
-        // Envia o formulário usando Fetch (o que garante o controle)
-        fetch(rsvpForm.action, {
-            method: rsvpForm.method,
-            body: new FormData(rsvpForm),
-            headers: { 'Accept': 'application/json' }
-        })
-        .then(response => {
-            submitButton.disabled = false;
-            submitButton.textContent = 'Enviar Confirmação';
-
-            if (response.ok) {
-                // SUCESSO: Define a flag no LocalStorage
-                localStorage.setItem(SUBMITTED_KEY, 'true'); 
-                
-                // Fade Out do Formulário
-                rsvpFormContainer.classList.remove('fade-in');
-                
-                setTimeout(() => {
-                    // Transiciona para a tela de sucesso
-                    showSuccessScreen();
-                }, 500); 
-                
-            } else {
-                // ERRO
-                alert("Ocorreu um erro ao enviar a confirmação. Por favor, tente novamente.");
-            }
-        })
-        .catch(error => {
-            submitButton.disabled = false;
-            submitButton.textContent = 'Enviar Confirmação';
-            alert("Erro de conexão. Verifique sua rede e tente novamente.");
-            console.error('Erro de rede:', error);
-        });
+        }, 500); // O tempo aqui (500ms) deve ser igual ao tempo de transição no CSS
     });
 });
