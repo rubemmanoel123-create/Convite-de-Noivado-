@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
         playButtonContainer.classList.remove('hidden');
         playButtonContainer.classList.add('fade-in'); 
         
-        // Tenta garantir que o vídeo esteja rodando
+        // Tenta garantir que o vídeo esteja rodando ao mostrar a tela inicial
         video.play().catch(e => {
             console.log("Falha ao tentar iniciar vídeo (Celular): ", e);
         });
@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 500); 
     });
 
-    // CORREÇÃO: Lógica do Formulário (RESTABELECIDA COM FETCH E LOCALSTORAGE)
+    // Lógica do Formulário (USANDO FETCH PARA EVITAR REDIRECIONAMENTO E CONTROLAR O ESTADO)
     rsvpForm.addEventListener('submit', (e) => {
         e.preventDefault(); // Impede o envio padrão (para usar o Fetch)
         
