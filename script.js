@@ -1,5 +1,3 @@
-script
-
 document.addEventListener('DOMContentLoaded', () => {
     // Referências aos elementos do DOM
     const video = document.getElementById('background-video');
