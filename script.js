@@ -1,71 +1,88 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Chave para armazenar o status no LocalStorage
+    const SUBMITTED_KEY = 'rsvpSubmitted';
+    
     // Referências aos elementos do DOM
     const video = document.getElementById('background-video');
     const playButtonContainer = document.getElementById('play-button-container');
     const playButton = document.getElementById('play-button');
     const rsvpFormContainer = document.getElementById('rsvp-form-container');
-    const alreadySubmittedContainer = document.getElementById('already-submitted-container');
+    const rsvpForm = document.getElementById('rsvp-form');
+    const successContainer = document.getElementById('already-submitted-container');
 
-    // --- Lógica de Verificação de Sucesso (APÓS ENVIO) ---
-    const urlParams = new URLSearchParams(window.location.search);
+    // --- FUNÇÕES DE ESTADO DA PÁGINA ---
 
-    if (urlParams.get('success') === 'true') {
-        // Se houver o parâmetro de sucesso na URL, exibe a mensagem de confirmação
+    // Função para exibir a tela de sucesso
+    const showSuccessScreen = () => {
+        // Esconde o botão e o formulário
         playButtonContainer.classList.add('hidden');
         rsvpFormContainer.classList.add('hidden');
-        alreadySubmittedContainer.classList.remove('hidden');
-
-        // Adiciona a classe de fade-in para a mensagem de sucesso
-        void alreadySubmittedContainer.offsetWidth;
-        alreadySubmittedContainer.classList.add('fade-in');
-
-        // Limpa o parâmetro da URL para que a página não fique sempre em estado de sucesso
-        history.replaceState(null, '', window.location.pathname);
         
-        // Não executa o resto do script (vídeo/botão inicial)
-        return; 
-    }
-
-    // Função para mostrar o botão "Continuar" (COM FADE IN)
-    const showPlayButton = () => {
-        if (playButtonContainer.classList.contains('hidden')) {
-            
-            // 1. Remove 'hidden' para exibir o elemento
-            playButtonContainer.classList.remove('hidden');
-            
-            // 2. Truque para forçar o navegador a renderizar as mudanças de CSS
-            void playButtonContainer.offsetWidth; 
-            
-            // 3. Adiciona 'fade-in' para disparar a transição suave
-            playButtonContainer.classList.add('fade-in');
-
-            video.pause(); // Pausa o vídeo
-        }
+        // Exibe a tela de sucesso
+        successContainer.classList.remove('hidden');
+        void successContainer.offsetWidth; 
+        successContainer.classList.add('fade-in');
+        
+        video.play().catch(e => {
+            console.log("Falha ao tentar iniciar vídeo: ", e);
+        });
+        
+        // Garante que o localStorage seja setado
+        localStorage.setItem(SUBMITTED_KEY, 'true'); 
     };
 
-    // --- Lógica de Transição do Vídeo ---
-    video.addEventListener('ended', showPlayButton);
-    setTimeout(showPlayButton, 3000); // Fallback de 3 segundos
-
-    // --- Lógica do Botão "Continuar" (COM FADE OUT e FADE IN) ---
-    playButton.addEventListener('click', () => {
-        // 1. Inicia o FADE OUT do botão atual
-        playButtonContainer.classList.remove('fade-in');
+    // Função para exibir o botão "CONTINUAR"
+    const showPlayButtonScreen = () => {
+        rsvpFormContainer.classList.add('hidden');
+        successContainer.classList.add('hidden');
         
-        // 2. Após 500ms, esconde o botão e inicia o FADE IN do formulário
+        playButtonContainer.classList.remove('hidden');
+        playButtonContainer.classList.add('fade-in'); 
+        
+        video.play().catch(e => {
+            console.log("Falha ao tentar iniciar vídeo: ", e);
+        });
+    };
+    
+    // --- LÓGICA DE INICIALIZAÇÃO (CHECA LOCALSTORAGE E URL) ---
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    if (localStorage.getItem(SUBMITTED_KEY) === 'true' || urlParams.has('submitted')) {
+        // Se já submeteu antes (localStorage) OU se acabou de ser redirecionado (URL parameter)
+        showSuccessScreen();
+        // Limpa o parâmetro 'submitted' da URL (para não ficar feio no endereço)
+        history.replaceState(null, null, window.location.pathname);
+    } else {
+        showPlayButtonScreen(); 
+    }
+
+    // --- EVENT LISTENERS ---
+
+    // Lógica do Botão "Continuar"
+    playButton.addEventListener('click', () => {
+        // Fade Out do botão
+        playButtonContainer.classList.remove('fade-in');
+        video.pause(); 
+        
         setTimeout(() => {
-            // Esconde o container do botão (DOM)
             playButtonContainer.classList.add('hidden');
-            
-            // Exibe o container do formulário (DOM)
             rsvpFormContainer.classList.remove('hidden');
-            
-            // Truque para forçar o navegador a reconhecer o elemento
+            // Fade In do Formulário
             void rsvpFormContainer.offsetWidth; 
-            
-            // 3. Aplica o FADE IN ao formulário
             rsvpFormContainer.classList.add('fade-in');
-            
-        }, 500); // O tempo aqui (500ms) deve ser igual ao tempo de transição no CSS
+        }, 500); 
+    });
+
+    // Lógica do Formulário (Apenas desabilita o botão para evitar cliques duplos durante o envio nativo)
+    rsvpForm.addEventListener('submit', (e) => {
+        // NÃO USAMOS e.preventDefault()
+        
+        const submitButton = rsvpForm.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        submitButton.textContent = 'Enviando...';
+        
+        // O navegador enviará a requisição POST e será redirecionado pelo FormSubmit.
+        // O script será reiniciado na nova página e mostrará a tela de sucesso.
     });
 });
