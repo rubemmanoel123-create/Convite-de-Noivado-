@@ -9,14 +9,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Lógica de Verificação de Sucesso (APÓS ENVIO) ---
     const urlParams = new URLSearchParams(window.location.search);
 
-    if (urlParams.get('success') === 'true') {
+    // CORREÇÃO: Verifica se o parâmetro 'submitted=true' está na URL
+    if (urlParams.get('submitted') === 'true') {
         // Se houver o parâmetro de sucesso na URL, exibe a mensagem de confirmação
         playButtonContainer.classList.add('hidden');
         rsvpFormContainer.classList.add('hidden');
         alreadySubmittedContainer.classList.remove('hidden');
 
         // Adiciona a classe de fade-in para a mensagem de sucesso
-        void alreadySubmittedContainer.offsetWidth;
+        // Truque para forçar o navegador a renderizar as mudanças de CSS
+        void alreadySubmittedContainer.offsetWidth; 
         alreadySubmittedContainer.classList.add('fade-in');
 
         // Limpa o parâmetro da URL para que a página não fique sempre em estado de sucesso
@@ -28,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Função para mostrar o botão "Continuar" (COM FADE IN)
     const showPlayButton = () => {
-        if (playButtonContainer.classList.contains('hidden')) {
+        if (playButtonContainer.classList.contains('hidden') || !playButtonContainer.classList.contains('fade-in')) {
             
             // 1. Remove 'hidden' para exibir o elemento
             playButtonContainer.classList.remove('hidden');
@@ -45,7 +47,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Lógica de Transição do Vídeo ---
     video.addEventListener('ended', showPlayButton);
-    setTimeout(showPlayButton, 3000); // Fallback de 3 segundos
+    // Adiciona um listener para o evento 'canplay' ou 'loadeddata' para garantir o início correto
+    video.addEventListener('canplay', () => {
+        // Se o vídeo carregar, remove o fallback, pois o 'ended' cuidará da exibição
+        clearTimeout(fallbackTimeout);
+    });
+    
+    // Fallback de 3 segundos (Útil se o vídeo falhar ou for muito curto)
+    const fallbackTimeout = setTimeout(showPlayButton, 3000); 
 
     // --- Lógica do Botão "Continuar" (COM FADE OUT e FADE IN) ---
     playButton.addEventListener('click', () => {
