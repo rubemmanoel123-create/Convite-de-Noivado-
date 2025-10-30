@@ -12,18 +12,12 @@ body {
 /* 2. Estilização Crítica do Vídeo de Fundo */
 #background-video {
     position: fixed;
-    
-    /* Centralização horizontal e vertical */
     top: 50%; 
     left: 50%; 
     transform: translate(-50%, -50%); 
-    
     width: 100%;
     height: 100%;
-    
-    /* Garante que o vídeo preencha toda a tela, mantendo a proporção */
     object-fit: cover; 
-    
     z-index: -10;
 }
 
@@ -37,8 +31,6 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    
-    /* Garante que o conteúdo fique sempre acima do vídeo */
     z-index: 10;
 }
 
@@ -143,8 +135,7 @@ input[type="text"] {
     font-size: 1.4em; 
 }
 
-/* GARANTIA DE EXIBIÇÃO E CENTRALIZAÇÃO DO BOTÃO INICIAL (CORRIGIDO) */
-/* Aplica 'display: flex' APENAS se o container NÃO tiver a classe 'hidden' */
+/* CORREÇÃO DA SOBREPOSIÇÃO: Aplica 'display: flex' APENAS se o container NÃO tiver a classe 'hidden' */
 #play-button-container:not(.hidden) {
     display: flex; 
     flex-direction: column; 
